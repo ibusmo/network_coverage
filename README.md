@@ -98,16 +98,12 @@ Suggested filenames:
 - `docs/screenshots/03-channel-strip-demo.png`
 - `docs/screenshots/04-history-demo.png`
 
-README gallery block (add screenshots with the exact filenames above):
-
-```md
 ## Screenshots
 
 ![Overview dashboard (demo mode)](docs/screenshots/01-overview-demo.png)
 ![Spectrum view (demo mode)](docs/screenshots/02-spectrum-demo.png)
 ![Channel/AP strip (demo mode)](docs/screenshots/03-channel-strip-demo.png)
 ![History table (demo mode)](docs/screenshots/04-history-demo.png)
-```
 
 ## Repo Short Description
 
