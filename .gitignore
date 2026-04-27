@@ -1,0 +1,20 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+
+# Local runtime/state data (privacy-sensitive)
+survey_state.json
+current_ssid
+docs/screenshots/
+
+# Local notes not for public repo
+REQUIRMENT.md
+project_requirement.md
+
+# Editor/tool caches
+.cursor/
+.idea/
+*.log

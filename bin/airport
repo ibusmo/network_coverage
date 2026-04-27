@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# macOS: Apple’s Wi‑Fi scanner is not on $PATH. This forwards to the real binary.
+# Note: as of macOS 14.4+, ``-s`` often prints only a deprecation warning and no neighbor list.
+exec /System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport "$@"

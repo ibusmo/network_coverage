@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0f1117" />
+  <title>Network Coverage</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=42" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="spectrumTooltip" class="spectrum-tooltip hidden" role="tooltip"></div>
+<div class="container">
+  <header>
+    <div class="header-left">
+      <h1>Network Coverage</h1>
+      <p class="meta" id="metaLine">Local Wi‑Fi survey for channel planning (macOS).</p>
+    </div>
+    <div class="header-actions">
+      <div class="auto-scan-wrap">
+        <label class="auto-scan-label" title="When on: countdown, then scan; after each scan another countdown using your selected seconds.">
+          <input type="checkbox" id="autoScanToggle" />
+          Auto scan
+          <input type="number" id="autoScanInterval" min="5" max="300" step="1" value="10" />
+          <span>s</span>
+        </label>
+        <div id="autoScanNextLine" class="auto-scan-next hidden" aria-live="polite"></div>
+      </div>
+      <button type="button" class="btn-secondary" id="btnDemoMode" onclick="toggleDemoMode()">Demo mode</button>
+      <button type="button" class="btn-secondary" id="btnScanFresh" title="Discard merged session data and keep only this scan" onclick="startSurvey({ replace: true })">Scan fresh</button>
+      <button type="button" class="btn-primary" id="btnScan" title="Elapsed time while scanning. Auto scan: next run is shown under the checkbox." onclick="startSurvey()">Scan air</button>
+    </div>
+  </header>
+
+  <div id="statusBanner" class="banner hidden" role="status"></div>
+
+  <section class="link-panel" id="linkPanel">
+    <div class="link-grid">
+      <div>
+        <div class="stat-label">This Mac (associated)</div>
+        <div class="stat-val" id="linkSsid">—</div>
+        <div class="stat-sub" id="linkBssid"></div>
+      </div>
+      <div>
+        <div class="stat-label">Channel / band</div>
+        <div class="stat-val" id="linkCh">—</div>
+      </div>
+      <div>
+        <div class="stat-label">RSSI</div>
+        <div class="stat-val" id="linkRssi">—</div>
+      </div>
+      <div>
+        <div class="stat-label">Last survey</div>
+        <div class="stat-val" id="linkTime">—</div>
+        <div class="stat-sub" id="linkSource"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="history-panel">
+    <div class="history-head">
+      <h2>Scan history</h2>
+      <button type="button" class="btn-secondary btn-small" id="btnRefreshHistory" onclick="loadLatest()">Reload last</button>
+    </div>
+    <div class="table-wrap history-table-wrap">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Scanned at</th>
+            <th>Connected SSID</th>
+            <th>RSSI</th>
+            <th>2.4 GHz</th>
+            <th>5 GHz</th>
+            <th>BSSIDs</th>
+            <th>Source</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+      <div id="emptyHistory" class="empty-msg hidden">No saved scans yet.</div>
+    </div>
+  </section>
+
+  <section class="suggest-panel" id="suggestPanel">
+    <h2>Router hints</h2>
+    <p class="hint">Use your router admin UI to set the primary channel. This tool only counts APs heard on each channel; it does not measure non‑Wi‑Fi interference.</p>
+    <div class="suggest-grid" id="suggestGrid"></div>
+  </section>
+
+  <section class="table-section">
+    <div class="table-head">
+      <h2>Networks heard</h2>
+      <span class="muted" id="netCount"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="netTable">
+        <thead>
+          <tr>
+            <th data-col="ssid" class="sortable" title="Sort by SSID">SSID<span class="sort-icon" aria-hidden="true"></span></th>
+            <th data-col="bssid" class="sortable" title="Sort by BSSID">BSSID<span class="sort-icon" aria-hidden="true"></span></th>
+            <th data-col="rssi" class="sortable" title="Sort by signal (dBm)">RSSI<span class="sort-icon" aria-hidden="true"></span></th>
+            <th data-col="channel" class="sortable" title="Sort by channel">Ch<span class="sort-icon" aria-hidden="true"></span></th>
+            <th data-col="band" class="sortable" title="Sort by band">Band<span class="sort-icon" aria-hidden="true"></span></th>
+            <th data-col="width" class="sortable" title="Sort by channel width">Width<span class="sort-icon" aria-hidden="true"></span></th>
+            <th data-col="est_m" class="sortable mono" title="Sort by ~m from RSSI (chart model)">~m<span class="sort-icon" aria-hidden="true"></span></th>
+          </tr>
+        </thead>
+        <tbody id="netBody"></tbody>
+      </table>
+      <div id="emptyNetworks" class="empty-msg hidden">No survey yet — click “Scan air”.</div>
+    </div>
+  </section>
+
+  <section class="charts">
+    <div class="chart-card spectrum-card">
+      <div class="chart-head">
+        <h2>2.4 GHz spectrum</h2>
+        <span class="chip">Lobes: parabola in MHz to ±½·width_mhz, smooth tangent at the floor. Y scale tracks strongest RSSI. Peak labels: SSID; MHz & width; ~m · dBm. Networks table has ~m column. Hover / crosshair; wheel · drag · dbl‑click reset.</span>
+      </div>
+      <details class="spectrum-example">
+        <summary>Examples (Wifi Analyzer — what “jam” looks like)</summary>
+        <p class="spectrum-example-note">Dense, overlapping curves on channels 1–14 mean shared airtime. Your live plot is below after <strong>Scan air</strong>. Dashed line = strongest combined signal per channel.</p>
+        <div class="spectrum-example-inner">
+          <img src="{{ url_for('static', filename='example-wifi-analyzer-1.png') }}" alt="Wifi Analyzer: SSID peaks on crowded 2.4 GHz channels" decoding="async" />
+        </div>
+        <div class="spectrum-example-inner">
+          <img src="{{ url_for('static', filename='example-wifi-analyzer-2.png') }}" alt="Wifi Analyzer: channel curves showing overlap" decoding="async" />
+        </div>
+      </details>
+      <div class="spectrum-wrap">
+        <canvas id="spectrum24" width="1100" height="380"></canvas>
+        <canvas id="spectrum24-crosshair" class="spectrum-chart-overlay" width="1100" height="380" aria-hidden="true"></canvas>
+      </div>
+      <div class="bar-strip" id="barStrip24Wrap">
+        <div class="bar-strip-head">2.4 GHz — bars by channel <span class="bar-strip-hint">Each row: Ch + signal bar on the left; SSIDs as cards to the right (farthest channel rows first)</span></div>
+        <div class="bar-strip-cols" id="barStrip24Cols"></div>
+      </div>
+      <div class="histogram-block">
+        <div class="chart-head chart-head--sub">
+          <h3 class="histogram-title">2.4 GHz — APs per channel</h3>
+          <span class="chip">Hover a bar: five lines per AP (SSID; MHz; width; ~m; dBm). Wheel zoom / drag pan · dbl‑click reset.</span>
+        </div>
+        <canvas id="chart24"></canvas>
+      </div>
+    </div>
+    <div class="chart-card spectrum-card hidden" id="spectrum5Card">
+      <div class="chart-head">
+        <h2>5 GHz spectrum</h2>
+        <span class="chip">Interactive chart: crosshair readout; hover; wheel · drag · dbl‑click reset.</span>
+      </div>
+      <div class="spectrum-wrap">
+        <canvas id="spectrum5" width="1100" height="380"></canvas>
+        <canvas id="spectrum5-crosshair" class="spectrum-chart-overlay" width="1100" height="380" aria-hidden="true"></canvas>
+      </div>
+      <div class="bar-strip hidden" id="barStrip5Wrap">
+        <div class="bar-strip-head">5 GHz — bars by channel <span class="bar-strip-hint">Each row: Ch + signal bar on the left; SSIDs as cards to the right (farthest channel rows first)</span></div>
+        <div class="bar-strip-cols" id="barStrip5Cols"></div>
+      </div>
+      <div class="histogram-block">
+        <div class="chart-head chart-head--sub">
+          <h3 class="histogram-title">5 GHz — APs per channel</h3>
+          <span class="chip">Hover a bar: five lines per AP (SSID; MHz; width; ~m; dBm). Wheel zoom / drag pan · dbl‑click reset.</span>
+        </div>
+        <canvas id="chart5"></canvas>
+      </div>
+    </div>
+    <div class="chart-card hidden" id="card6">
+      <div class="chart-head">
+        <h2>6 GHz — APs per channel</h2>
+        <span class="chip">If any APs reported</span>
+      </div>
+      <canvas id="chart6" height="120"></canvas>
+    </div>
+  </section>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}?v=56"></script>
+</body>
+</html>
