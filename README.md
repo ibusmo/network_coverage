@@ -10,6 +10,13 @@ It scans nearby APs, shows spectrum/channel overlap, estimates rough distance fr
 > I will do my best to improve this project, but updates depend on available time.  
 > You are also welcome to build with your favorite AI tools and share improvements.
 
+## Screenshots
+
+![Overview dashboard (demo mode)](docs/screenshots/01-overview-demo.png)
+![Spectrum view (demo mode)](docs/screenshots/02-spectrum-demo.png)
+![Channel/AP strip (demo mode)](docs/screenshots/03-channel-strip-demo.png)
+![History table (demo mode)](docs/screenshots/04-history-demo.png)
+
 ## Features
 
 - 2.4 GHz and 5 GHz spectrum visualization
@@ -97,13 +104,6 @@ Suggested filenames:
 - `docs/screenshots/02-spectrum-demo.png`
 - `docs/screenshots/03-channel-strip-demo.png`
 - `docs/screenshots/04-history-demo.png`
-
-## Screenshots
-
-![Overview dashboard (demo mode)](docs/screenshots/01-overview-demo.png)
-![Spectrum view (demo mode)](docs/screenshots/02-spectrum-demo.png)
-![Channel/AP strip (demo mode)](docs/screenshots/03-channel-strip-demo.png)
-![History table (demo mode)](docs/screenshots/04-history-demo.png)
 
 ## Repo Short Description
 
