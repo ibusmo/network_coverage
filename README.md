@@ -77,33 +77,17 @@ Demo-safe mode:
 http://127.0.0.1:5002/?demo=1
 ```
 
-In Demo mode, identifiers and scan metadata are masked for screenshots.
+## Demo Mode
 
-## Screenshot Plan (Privacy-Safe)
+Demo mode is for privacy-safe sharing (screenshots, README previews, public demos).
 
-Capture all screenshots with Demo mode enabled.
+- Masks SSID values
+- Masks BSSID values
+- Masks scan metadata shown in the UI
 
-1) Overview dashboard
-- Show main header, associated link panel, and status banner area.
-- Goal: communicate that this is a full survey workflow, not just a chart.
-
-2) Spectrum focus
-- Show 2.4 GHz and 5 GHz spectrum cards with peak labels.
-- Goal: demonstrate overlap/jam visibility and channel density.
-
-3) Channel/AP detail strip
-- Show channel-left rows with AP cards on the right.
-- Goal: show practical data granularity (MHz, width, RSSI, distance).
-
-4) History table
-- Show 5-row scroll viewport and `Load` action buttons.
-- Goal: highlight scan persistence and comparison workflow.
-
-Suggested filenames:
-- `docs/screenshots/01-overview-demo.png`
-- `docs/screenshots/02-spectrum-demo.png`
-- `docs/screenshots/03-channel-strip-demo.png`
-- `docs/screenshots/04-history-demo.png`
+Use either:
+- URL: `http://127.0.0.1:5002/?demo=1`
+- UI button: `Demo mode` (toggles to `Demo on`)
 
 ## Repo Short Description
 
