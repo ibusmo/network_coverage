@@ -9,6 +9,7 @@ __pycache__/
 survey_state.json
 current_ssid
 docs/screenshots/
+requirement/
 
 # Local notes not for public repo
 REQUIRMENT.md
